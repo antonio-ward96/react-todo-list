@@ -1,0 +1,158 @@
+import * as React from 'react';
+import Container from '@mui/material/Container';
+import { Button, Card, CardContent, Divider, Grid, TextField, ToggleButton, ToggleButtonGroup, Typography, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import ToDo from './Todo';
+import { v4 as uuidv4 } from 'uuid';
+import { useContext, useState } from 'react';
+import { ToDosContext } from '../contexts/toDosContext';
+import { useToast } from '../contexts/ToastContext';
+
+
+export default function ToDoList() {
+  const { todos, setTodos } = useContext(ToDosContext);
+  const {showHideToast}= useToast();
+  
+  React.useEffect(() => {
+    const savedTodos = JSON.parse(localStorage.getItem("todos")) || [];
+    setTodos(savedTodos);
+  }, []);
+
+  const [titleInput, setTitleInput] = useState("");
+  const [detailsInput, setDetailsInput] = useState("");
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [filterType, setFilterType] = useState("All tasks");
+  
+  const [activeTodo, setActiveTodo] = useState(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const filteredTodos = React.useMemo(() => {
+    return todos.filter((t) => {
+      if (filterType === "Tasks done") return t.isCompleted;
+      if (filterType === "Tasks Should To Do") return !t.isCompleted;
+      return true;
+    });
+  }, [todos, filterType]);
+
+  function handleEditClick(todo) {
+    setActiveTodo(todo);
+    setTitleInput(todo.title);
+    setDetailsInput(todo.details);
+    setShowEditDialog(true);
+  }
+
+  function handleDeleteClick(todo) {
+    setActiveTodo(todo);
+    setShowDeleteDialog(true);
+  }
+
+  function handleSave() {
+    const updatedTodos = todos.map((t) =>
+      t.id === activeTodo.id ? { ...t, title: titleInput, details: detailsInput } : t
+    );
+    setTodos(updatedTodos);
+    localStorage.setItem("todos", JSON.stringify(updatedTodos));
+    showHideToast("updated successfuly!");
+    setShowEditDialog(false);
+  }
+
+  function handleDelete() {
+    const updatedTodos = todos.filter((t) => t.id !== activeTodo.id);
+    setTodos(updatedTodos);
+    localStorage.setItem("todos", JSON.stringify(updatedTodos));
+    showHideToast("deleted successfuly");
+    setShowDeleteDialog(false);
+  }
+
+  function handleAddClick() {
+    setTitleInput("");  // ✅ تفريغ العنوان عند إضافة مهمة جديدة
+    setDetailsInput("");  // ✅ تفريغ التفاصيل عند إضافة مهمة جديدة
+    setShowAddDialog(true);
+  }
+
+  function handleAddSave() {
+    const newTodo = {
+      id: uuidv4(),
+      title: titleInput,
+      details: detailsInput,
+      isCompleted: false,
+    };
+    const updatedTodos = [...todos, newTodo];
+    setTodos(updatedTodos);
+    localStorage.setItem("todos", JSON.stringify(updatedTodos));
+    setTitleInput("");
+    setDetailsInput("");
+    showHideToast("added successfuly");
+    setShowAddDialog(false);
+  }
+
+  return (
+    <>
+      <Container maxWidth="sm">
+        <Card sx={{ minWidth: 275 }} style={{ maxHeight: "88vh", overflow: "scroll", overflowX: "hidden" }}>
+          <CardContent>
+            <Typography variant="h2">My Tasks</Typography>
+            <Divider />
+
+            <ToggleButtonGroup
+              style={{ marginTop: "20px" }}
+              value={filterType}
+              exclusive
+              onChange={(event, newValue) => setFilterType(newValue)}
+              aria-label="text alignment"
+            >
+              <ToggleButton value="All tasks" aria-label="All tasks">All Tasks</ToggleButton>
+              <ToggleButton value="Tasks done" aria-label="Tasks done">Completed Tasks</ToggleButton>
+              <ToggleButton value="Tasks Should To Do" aria-label="Tasks Should To Do">Tasks To Be Completed</ToggleButton>
+            </ToggleButtonGroup>
+
+            {filteredTodos.map((t) => (
+              <ToDo key={t.id} todo={t} onEditClick={handleEditClick} onDeleteClick={handleDeleteClick} />
+            ))}
+
+            <Grid container spacing={2} style={{ marginTop: "10px" }}>
+              <Grid size={12} style={{ textAlign: "center" }}>
+                <Button variant="contained" onClick={handleAddClick} style={{ width: "100%", height: "60px" }}>Add NEW Task</Button>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      </Container>
+
+      <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)}>
+        <DialogTitle>Add New Task</DialogTitle>
+        <DialogContent>
+          <TextField label="Title" fullWidth value={titleInput} onChange={(e) => setTitleInput(e.target.value)} style={{ marginTop: 10 }} />
+          <TextField label="Details" fullWidth value={detailsInput} onChange={(e) => setDetailsInput(e.target.value)} style={{ marginTop: 10 }} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowAddDialog(false)}>Cancel</Button>
+          <Button onClick={handleAddSave} disabled={titleInput.length === 0 || detailsInput.length === 0} autoFocus>Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={showEditDialog} onClose={() => setShowEditDialog(false)}>
+        <DialogTitle>Edit Task</DialogTitle>
+        <DialogContent>
+          <TextField label="Title" fullWidth value={titleInput} onChange={(e) => setTitleInput(e.target.value)} style={{ marginTop: 10 }} />
+          <TextField label="Details" fullWidth value={detailsInput} onChange={(e) => setDetailsInput(e.target.value)} style={{ marginTop: 10 }} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowEditDialog(false)}>Cancel</Button>
+          <Button onClick={handleSave} autoFocus>Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={showDeleteDialog} onClose={() => setShowDeleteDialog(false)}>
+        <DialogTitle>Delete Task</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this task?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowDeleteDialog(false)}>Cancel</Button>
+          <Button onClick={handleDelete} autoFocus>Delete</Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}

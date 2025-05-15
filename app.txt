@@ -1,0 +1,49 @@
+import { useState } from 'react';
+import './App.css';
+import ToDoList from './components/ToDoList';
+import { v4 as uuidv4 } from 'uuid';
+import { ToDosContext } from './contexts/toDosContext';
+import { ToastProvider } from './contexts/ToastContext';
+
+
+const initialToDos=[
+  { id:uuidv4(),
+    title:"reading book",
+    details:"sssss",
+    isCompleted:false,
+  },
+  { id:uuidv4(),
+    title:"reading book",
+    details:"wwwwww",
+    isCompleted:false,
+  },
+  { id:uuidv4(),
+    title:"reading book",
+    details:"ddddd",
+    isCompleted:false,
+  }
+];
+function App() {
+  const [todos,setTodos]=useState(initialToDos);
+
+  return (
+    <ToastProvider>
+    <div
+      className="App"
+      style={{
+        display:"flex",
+        justifyContent:"center",
+        alignItems:"center",
+        height:"100vh",
+        background:"#191b1f"}}>
+          
+      <ToDosContext.Provider value={{todos,setTodos}}>    
+      <ToDoList />
+      </ToDosContext.Provider>
+    </div>
+    </ToastProvider>
+  );
+}
+
+export default App;
+

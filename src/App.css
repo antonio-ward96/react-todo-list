@@ -1,0 +1,19 @@
+.App {
+  text-align: center;
+}
+
+.iconButton {
+  transition: all 0.2s !important;
+}
+.iconButton:hover{
+  background-color: #c5c5c5 !important;
+  box-shadow: 8px 7px 7px rgba(0, 0, 0, 0.2) !important;
+}
+.toDoCard{
+  transition: all 0.2s !important;
+}
+.toDoCard:hover{
+  padding-top: 20px;
+  padding-bottom: 20px;
+  box-shadow: 8px 7px 7px rgba(0, 0, 0, 0.2) !important;
+}

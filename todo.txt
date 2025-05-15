@@ -1,0 +1,78 @@
+import { Card, CardContent, Grid, Typography, IconButton } from "@mui/material";
+import CheckIcon from '@mui/icons-material/Check';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useContext } from "react";
+import { ToDosContext } from "../contexts/toDosContext";
+import { useToast } from "../contexts/ToastContext";
+
+export default function ToDo({ todo, onEditClick, onDeleteClick }) {
+    const { todos, setTodos } = useContext(ToDosContext);
+    const {showHideToast}= useToast();
+
+    function Handle() {
+        const updatedTodos = todos.map((t) => {
+            if (t.id === todo.id) {
+                t.isCompleted = !t.isCompleted;
+            }
+            return t;
+        });
+        setTodos(updatedTodos);
+        localStorage.setItem("todos", JSON.stringify(updatedTodos));
+        if(todo.isCompleted) {
+            showHideToast("Task completed successfully");
+        }
+    }
+
+    return (
+        <Card className="toDoCard" sx={{ minWidth: 275, marginTop: 5 }} style={{ background: "#335597", color: "white" }}>
+            <CardContent>
+                <Grid container spacing={2}>
+                    <Grid size={8}>
+                        <Typography variant="h4" sx={{ textAlign: "left", textDecoration: todo.isCompleted ? "line-through" : "none" }}>{todo.title}</Typography>
+                        <Typography variant="h5" style={{ textAlign: "left" }}>{todo.details}</Typography>
+                    </Grid>
+                    <Grid size={4} style={{ textAlign: "right" }} display="flex" justifyContent="space-around" alignItems="center">
+                        <IconButton
+                        onClick={Handle}
+                        className="iconButton"
+                        aria-label="complete"
+                        style={{
+                            color: todo.isCompleted ? "white" : "#8bc34a",
+                            background: todo.isCompleted ? "green" : "white",
+                            border: "solid rgb(139, 195, 74)"
+                        }}
+
+                        >
+                            <CheckIcon />
+                        </IconButton>
+                        <IconButton
+                            onClick={() => onEditClick(todo)}
+                            className="iconButton"
+                            aria-label="edit"
+                            style={{
+                                color: "#1c0380",
+                                background: "white",
+                                border: "solid rgb(28, 3, 128)"
+                            }}
+                        >
+                            <EditIcon />
+                        </IconButton>
+                        <IconButton
+                            className="iconButton"
+                            onClick={() => onDeleteClick(todo)}
+                            aria-label="delete"
+                            style={{
+                                color: "#ed0000",
+                                background: "white",
+                                border: "solid #ed0000"
+                            }}
+                        >
+                            <DeleteIcon />
+                        </IconButton>
+                    </Grid>
+                </Grid>
+            </CardContent>
+        </Card>
+    );
+}
